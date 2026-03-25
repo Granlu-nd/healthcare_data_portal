@@ -1,0 +1,4 @@
+patient_id,first_name,last_name,birth_date,gender,observation_type,value,unit,effective_datetime
+P001,John,Doe,1980-05-10,male,body_weight,82,kg,2026-03-20T09:00:00
+P001,John,Doe,1980-05-10,male,glucose,105,mg/dL,2026-03-20T09:10:00
+P002,Jane,Smith,1975-08-15,female,body_weight,68,kg,2026-03-20T10:00:00
