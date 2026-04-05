@@ -12,4 +12,4 @@ app.include_router(upload_router)
 
 @app.get("/")
 def root():
-    return {"message": "MedStream backend is running"}
+    return {"message": "backend is running"}
