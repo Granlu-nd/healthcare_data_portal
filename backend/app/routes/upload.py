@@ -1,11 +1,13 @@
 import io
+import json
 
 import pandas as pd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import IngestionJob
+from app.models import AuditLog, IngestionJob
+from app.services.validator import validate_row
 
 router = APIRouter()
 
@@ -27,20 +29,43 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         total_rows=len(df),
         success_rows=0,
         failed_rows=0,
-        status="uploaded"
+        status="processing"
     )
-
     db.add(job)
     db.commit()
     db.refresh(job)
 
-    preview = df.head(5).fillna("").to_dict(orient="records")
+    success_count = 0
+    failed_count = 0
+
+    for index, row in df.iterrows():
+        row_data = row.fillna("").to_dict()
+        errors = validate_row(row_data)
+
+        if errors:
+            failed_count += 1
+
+            audit_entry = AuditLog(
+                job_id=job.id,
+                row_number=index + 2,
+                source_data=json.dumps(row_data),
+                error_message="; ".join(errors)
+            )
+            db.add(audit_entry)
+        else:
+            success_count += 1
+
+    job.success_rows = success_count
+    job.failed_rows = failed_count
+    job.status = "completed"
+
+    db.commit()
 
     return {
-        "message": "File uploaded successfully",
+        "message": "File processed successfully",
         "job_id": job.id,
         "filename": job.filename,
-        "total_rows": len(df),
-        "columns": list(df.columns),
-        "preview": preview
+        "total_rows": job.total_rows,
+        "success_rows": job.success_rows,
+        "failed_rows": job.failed_rows,
     }
