@@ -1,12 +1,14 @@
 import io
 import json
+import uuid
 
 import pandas as pd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import AuditLog, IngestionJob
+from app.models import AuditLog, FHIRResource, IngestionJob
+from app.services.mapper import map_observation_resource, map_patient_resource
 from app.services.validator import validate_row
 
 router = APIRouter()
@@ -54,6 +56,32 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             db.add(audit_entry)
         else:
             success_count += 1
+
+            patient_resource = map_patient_resource(row_data)
+            observation_resource = map_observation_resource(row_data)
+
+            patient_resource_id = patient_resource.get("id", str(uuid.uuid4()))
+            observation_resource_id = str(uuid.uuid4())
+            patient_id = str(row_data["patient_id"]).strip()
+
+            patient_entry = FHIRResource(
+                job_id=job.id,
+                resource_type=patient_resource["resourceType"],
+                resource_id=patient_resource_id,
+                patient_id=patient_id,
+                resource_json=json.dumps(patient_resource)
+            )
+
+            observation_entry = FHIRResource(
+                job_id=job.id,
+                resource_type=observation_resource["resourceType"],
+                resource_id=observation_resource_id,
+                patient_id=patient_id,
+                resource_json=json.dumps(observation_resource)
+            )
+
+            db.add(patient_entry)
+            db.add(observation_entry)
 
     job.success_rows = success_count
     job.failed_rows = failed_count

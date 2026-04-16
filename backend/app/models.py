@@ -25,3 +25,15 @@ class AuditLog(Base):
     source_data = Column(Text, nullable=False)
     error_message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class FHIRResource(Base):
+    __tablename__ = "fhir_resources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, nullable=False)
+    resource_type = Column(String, nullable=False)
+    resource_id = Column(String, nullable=False)
+    patient_id = Column(String, nullable=False)
+    resource_json = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
