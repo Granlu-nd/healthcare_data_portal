@@ -2,6 +2,9 @@ import io
 import json
 import uuid
 
+from app.models import ObservationFact
+from datetime import datetime
+
 import pandas as pd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
@@ -80,8 +83,18 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
                 resource_json=json.dumps(observation_resource)
             )
 
+            observation_fact = ObservationFact(
+                job_id=job.id,
+                patient_id=patient_id,
+                observation_type=row_data["observation_type"],
+                value_num=float(row_data["value"]),
+                unit=row_data["unit"],
+                effective_datetime=datetime.fromisoformat(row_data["effective_datetime"])
+            )
+
             db.add(patient_entry)
             db.add(observation_entry)
+            db.add(observation_fact)
 
     job.success_rows = success_count
     job.failed_rows = failed_count

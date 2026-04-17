@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String, Text
+from sqlalchemy import Column, DateTime, Integer, String, Text, Numeric
 from sqlalchemy.sql import func
 
 from app.db import Base
@@ -36,4 +36,16 @@ class FHIRResource(Base):
     resource_id = Column(String, nullable=False)
     patient_id = Column(String, nullable=False)
     resource_json = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class ObservationFact(Base):
+    __tablename__ = "observation_fact"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, nullable=False)
+    patient_id = Column(String, nullable=False)
+    observation_type = Column(String, nullable=False)
+    value_num = Column(Numeric, nullable=False)
+    unit = Column(String, nullable=False)
+    effective_datetime = Column(DateTime, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
