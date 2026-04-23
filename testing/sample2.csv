@@ -1,0 +1,10 @@
+patient_id,first_name,last_name,birth_date,gender,observation_type,value,unit,effective_datetime
+P200,John,Doe,1980-05-10,male,body_weight,82,kg,2026-03-23T08:00:00
+P200,John,Doe,1980-05-10,male,glucose,101,mg/dL,2026-03-23T08:30:00
+P201,Jane,Smith,1975-08-15,female,body_weight,67,kg,2026-03-23T09:00:00
+P201,Jane,Smith,1975-08-15,female,glucose,94,mg/dL,2026-03-23T09:30:00
+
+,MissingID,User,1980-01-01,male,body_weight,70,kg,2026-03-23T10:00:00
+P202,BadValue,Example,1990-01-01,male,glucose,abc,mg/dL,2026-03-23T10:30:00
+P203,BadType,Example,1992-02-02,female,cholesterol,180,mg/dL,2026-03-23T11:00:00
+P204,BadTime,Example,1993-03-03,female,glucose,99,mg/dL,not-a-time
