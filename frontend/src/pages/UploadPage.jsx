@@ -1,10 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function UploadPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recentJobs, setRecentJobs] = useState([]);
+
+  const fetchRecentJobs = async () => {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/jobs");
+    const data = await response.json();
+
+    if (response.ok) {
+      setRecentJobs(data.slice(0, 5));
+    }
+  } catch (err) {
+    console.error("Failed to fetch recent jobs:", err);
+  }
+};
+
+  useEffect(() => {
+    fetchRecentJobs();
+  }, []);
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -25,6 +43,7 @@ function UploadPage() {
       setLoading(true);
       setError("");
       setUploadResult(null);
+      fetchRecentJobs();
 
       const response = await fetch("http://127.0.0.1:8000/upload", {
         method: "POST",
@@ -115,7 +134,6 @@ function UploadPage() {
               No upload processed yet.
             </div>
           )}
-
           {uploadResult && (
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -165,6 +183,52 @@ function UploadPage() {
             </div>
           )}
         </div>
+
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <h2 className="text-lg font-semibold text-slate-900">Recent jobs</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Latest uploads processed by the ingestion pipeline.
+        </p>
+
+        <div className="mt-5 space-y-3">
+          {recentJobs.length === 0 && (
+            <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500">
+              No jobs found yet.
+            </div>
+          )}
+
+          {recentJobs.map((job) => (
+            <div
+              key={job.id}
+              className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900 break-all">
+                    {job.filename}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Job #{job.id} • {job.status}
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">
+                  {job.total_rows} rows
+                </span>
+              </div>
+
+              <div className="mt-3 flex gap-4 text-xs">
+                <span className="text-emerald-700">
+                  {job.success_rows} success
+                </span>
+                <span className="text-amber-700">
+                  {job.failed_rows} failed
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <h2 className="text-lg font-semibold text-slate-900">
